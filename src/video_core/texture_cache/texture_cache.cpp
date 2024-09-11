@@ -148,7 +148,7 @@ ImageId TextureCache::ResolveOverlap(const ImageInfo& image_info, ImageId cache_
 
         if (tex_cache_image.info.IsMipOf(image_info)) {
             tex_cache_image.Transit(vk::ImageLayout::eTransferSrcOptimal,
-                                    vk::AccessFlagBits::eTransferRead);
+                                    vk::AccessFlagBits2::eTransferRead, {});
 
             const auto num_mips_to_copy = tex_cache_image.info.resources.levels;
             ASSERT(num_mips_to_copy == 1);
@@ -170,7 +170,7 @@ ImageId TextureCache::ExpandImage(const ImageInfo& info, ImageId image_id) {
     auto& src_image = slot_images[image_id];
     auto& new_image = slot_images[new_image_id];
 
-    src_image.Transit(vk::ImageLayout::eTransferSrcOptimal, vk::AccessFlagBits::eTransferRead);
+    src_image.Transit(vk::ImageLayout::eTransferSrcOptimal, vk::AccessFlagBits2::eTransferRead, {});
     new_image.CopyImage(src_image);
 
     FreeImage(image_id);
@@ -257,13 +257,14 @@ ImageView& TextureCache::FindTexture(const ImageInfo& info, const ImageViewInfo&
 
     if (view_info.is_storage) {
         image.Transit(vk::ImageLayout::eGeneral,
-                      vk::AccessFlagBits::eShaderRead | vk::AccessFlagBits::eShaderWrite);
+                      vk::AccessFlagBits2::eShaderRead | vk::AccessFlagBits2::eShaderWrite,
+                      view_info.range);
         usage.storage = true;
     } else {
         const auto new_layout = image.info.IsDepthStencil()
                                     ? vk::ImageLayout::eDepthStencilReadOnlyOptimal
                                     : vk::ImageLayout::eShaderReadOnlyOptimal;
-        image.Transit(new_layout, vk::AccessFlagBits::eShaderRead);
+        image.Transit(new_layout, vk::AccessFlagBits2::eShaderRead, view_info.range);
         usage.texture = true;
     }
 
@@ -278,8 +279,9 @@ ImageView& TextureCache::FindRenderTarget(const ImageInfo& image_info,
     UpdateImage(image_id);
 
     image.Transit(vk::ImageLayout::eColorAttachmentOptimal,
-                  vk::AccessFlagBits::eColorAttachmentWrite |
-                      vk::AccessFlagBits::eColorAttachmentRead);
+                  vk::AccessFlagBits2::eColorAttachmentWrite |
+                      vk::AccessFlagBits2::eColorAttachmentRead,
+                  view_info.range);
 
     // Register meta data for this color buffer
     if (!(image.flags & ImageFlagBits::MetaRegistered)) {
@@ -324,8 +326,10 @@ ImageView& TextureCache::FindDepthTarget(const ImageInfo& image_info,
                                               : vk::ImageLayout::eDepthAttachmentOptimal
                             : has_stencil ? vk::ImageLayout::eDepthStencilReadOnlyOptimal
                                           : vk::ImageLayout::eDepthReadOnlyOptimal;
-    image.Transit(new_layout, vk::AccessFlagBits::eDepthStencilAttachmentWrite |
-                                  vk::AccessFlagBits::eDepthStencilAttachmentRead);
+    image.Transit(new_layout,
+                  vk::AccessFlagBits2::eDepthStencilAttachmentWrite |
+                      vk::AccessFlagBits2::eDepthStencilAttachmentRead,
+                  view_info.range);
 
     // Register meta data for this depth buffer
     if (!(image.flags & ImageFlagBits::MetaRegistered)) {
@@ -398,7 +402,8 @@ void TextureCache::RefreshImage(Image& image, Vulkan::Scheduler* custom_schedule
     sched_ptr->EndRendering();
 
     const auto cmdbuf = sched_ptr->CommandBuffer();
-    image.Transit(vk::ImageLayout::eTransferDstOptimal, vk::AccessFlagBits::eTransferWrite, cmdbuf);
+    image.Transit(vk::ImageLayout::eTransferDstOptimal, vk::AccessFlagBits2::eTransferWrite, {},
+                  cmdbuf);
 
     const VAddr image_addr = image.info.guest_address;
     const size_t image_size = image.info.guest_size_bytes;
