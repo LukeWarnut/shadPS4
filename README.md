@@ -12,7 +12,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 </h1>
 
 <h1 align="center">
- <a href="https://discord.gg/MyZRaBngxA">
+ <a href="https://discord.gg/bFJxfftGW6">
         <img src="https://img.shields.io/discord/1080089157554155590?color=5865F2&label=shadPS4 Discord&logo=Discord&logoColor=white" width="240">
  <a href="https://github.com/shadps4-emu/shadPS4/releases/latest">
         <img src="https://img.shields.io/github/downloads/shadps4-emu/shadPS4/total.svg" width="140">
@@ -43,6 +43,8 @@ To verify that a game works, you can look at [**shadPS4 Game Compatibility**](ht
 To discuss shadPS4 development, suggest ideas or to ask for help, join our [**Discord server**](https://discord.gg/bFJxfftGW6).
 
 To get the latest news, go to our [**X (Twitter)**](https://x.com/shadps4) or our [**website**](https://shadps4.net/).
+
+For those who'd like to donate to the project, we now have a [Kofi page!](https://ko-fi.com/shadps4)
 
 # Status
 
